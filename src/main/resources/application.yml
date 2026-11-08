@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: graphql-acquaintance
+  graphql:
+    graphiql:
+      enabled: true
+      path: /graphiql

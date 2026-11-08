@@ -1,0 +1,21 @@
+type Query {
+    """Простое приветствие с заданным именем."""
+    greeting(name: String = "мир"): String!
+
+    """Вернуть все книги из демонстрационного хранилища."""
+    books: [Book!]!
+
+    """Найти книгу по идентификатору или вернуть null."""
+    bookById(id: ID!): Book
+}
+
+type Mutation {
+    """Добавить книгу в демонстрационное хранилище в памяти."""
+    addBook(title: String!, author: String!): Book!
+}
+
+type Book {
+    id: ID!
+    title: String!
+    author: String!
+}

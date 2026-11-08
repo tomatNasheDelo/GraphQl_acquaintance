@@ -1,0 +1,139 @@
+Подробное описание проекта и запуск
+====================================
+
+Что это за проект
+-----------------
+
+Это небольшой backend-only проект для первого знакомства с GraphQL. Он написан на Java и Spring Boot, для сборки используется Gradle Kotlin DSL (build.gradle.kts). Frontend и база данных не используются; каталог книг хранится в памяти и сбрасывается после перезапуска приложения.
+
+Элементы проекта
+----------------
+
+- build.gradle.kts — плагины Gradle, Java toolchain 17, Spring Boot Web и Spring for GraphQL.
+- settings.gradle.kts — имя Gradle-проекта.
+- src/main/java/.../GraphQlAcquaintanceApplication.java — точка входа Spring Boot.
+- src/main/resources/graphql/schema.graphqls — GraphQL Schema Definition Language (SDL): типы, поля, аргументы, Query и Mutation.
+- GraphQlController.java — обработчики полей схемы с аннотациями @QueryMapping и @MutationMapping.
+- Book.java — модель книги, Java record.
+- BookService.java — простое хранилище в памяти и операции поиска/добавления.
+- application.yml — включает GraphiQL на /graphiql для интерактивных экспериментов.
+- src/test/.../GraphQlControllerTest.java — небольшой тест GraphQL query.
+
+Кратко о GraphQL
+----------------
+
+GraphQL — язык запросов к API и runtime для их выполнения. Клиент отправляет GraphQL-документ на endpoint, а в нём сам перечисляет нужные поля. Сервер описывает доступные типы и операции в схеме. Обычно приложение публикует один endpoint (здесь /graphql), в отличие от REST-подхода с набором URL под разные ресурсы.
+
+Основные понятия:
+
+- Schema — контракт API, задающий типы и доступные поля.
+- Query — чтение данных.
+- Mutation — изменение данных.
+- Resolver — код, который получает значение поля; в этом проекте resolver-методы находятся в GraphQlController.
+- Аргументы и variables — параметры запроса. Variables позволяют передавать значения отдельно от текста GraphQL-документа.
+- Типы с `!` обязательны. Например, `String!` означает, что поле не должно быть null; `Book` без `!` может быть null.
+
+GraphQL сам по себе не является базой данных и не определяет хранение данных, аутентификацию или авторизацию. В этом примере данные временные и находятся в памяти.
+
+Требования
+----------
+
+- JDK 17 или новее.
+- Gradle 8.10+ (или совместимая версия Gradle 8).
+- Доступ в интернет при первой сборке для загрузки зависимостей из Maven Central.
+
+Запуск
+------
+
+Из корня репозитория запусти Spring Boot:
+
+gradle bootRun
+
+При необходимости собери JAR:
+
+gradle clean build
+
+Запусти тесты:
+
+gradle test
+
+Остановить сервер — Ctrl+C. Приложение слушает порт 8080.
+
+Интерактивная GraphiQL-консоль
+------------------------------
+
+Открой в браузере:
+
+http://localhost:8080/graphiql
+
+GraphiQL — учебная web-консоль, поставляемая интеграцией Spring for GraphQL. Здесь можно выполнять запросы и смотреть schema documentation.
+
+Endpoint и примеры запросов
+---------------------------
+
+GraphQL endpoint:
+
+http://localhost:8080/graphql
+
+Получить приветствие:
+
+query {
+  greeting(name: "Анна")
+}
+
+В GraphiQL можно выполнить запрос напрямую. Через curl запрос отправляется методом POST:
+
+curl -X POST http://localhost:8080/graphql \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"{ greeting(name: \\"Анна\\") }"}'
+
+Получить только выбранные поля всех книг:
+
+query {
+  books {
+    id
+    title
+    author
+  }
+}
+
+Найти книгу:
+
+query {
+  bookById(id: "1") {
+    title
+    author
+  }
+}
+
+Добавить книгу (Mutation):
+
+mutation {
+  addBook(title: "Пикник на обочине", author: "Аркадий и Борис Стругацкие") {
+    id
+    title
+    author
+  }
+}
+
+После mutation запрос books покажет добавленную книгу, пока приложение не перезапущено.
+
+Пример variables:
+
+query Greeting($person: String!) {
+  greeting(name: $person)
+}
+
+Query Variables (JSON в GraphiQL):
+
+{
+  "person": "Ирина"
+}
+
+Важно помнить
+--------------
+
+- GraphQL-схема задаёт доступную структуру и типы, но не заменяет проверку прав доступа.
+- Клиент выбирает поля ответа, однако сервер всё равно должен следить за стоимостью и глубиной запросов в публичном API.
+- GraphQL endpoint здесь один — /graphql; GraphiQL UI доступен отдельно по /graphiql.
+- Не сохраняйте реальные данные в этом демонстрационном in-memory хранилище.
